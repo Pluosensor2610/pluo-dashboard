@@ -234,6 +234,29 @@ let rangoActual = "7";
 let rangoTempActual = "7";
 let chart = null;
 let chartTemp = null;
+let bandaSecoMax = 10;
+let bandaExcesoMin = 46;
+
+// Plugin Chart.js para dibujar bandas de color de fondo
+const pluginBandas = {
+  id: 'bandas',
+  beforeDraw(chart) {
+    const {ctx, chartArea:{top,bottom,left,right}, scales:{y}} = chart;
+    const regiones = [
+      {min:0,          max:bandaSecoMax,   color:'rgba(192,67,45,0.10)'},
+      {min:bandaSecoMax, max:bandaExcesoMin, color:'rgba(47,125,69,0.10)'},
+      {min:bandaExcesoMin, max:60,          color:'rgba(46,111,149,0.10)'}
+    ];
+    ctx.save();
+    regiones.forEach(r => {
+      const yTop    = y.getPixelForValue(r.max);
+      const yBottom = y.getPixelForValue(r.min);
+      ctx.fillStyle = r.color;
+      ctx.fillRect(left, Math.max(top, yTop), right-left, Math.min(bottom, yBottom) - Math.max(top, yTop));
+    });
+    ctx.restore();
+  }
+};
 
 function bandClass(val, secoMax, excesoMin){
   if (val <= secoMax) return "led-seco";
@@ -275,6 +298,8 @@ async function cargarEstado(){
     const led1 = bandClass(parseFloat(d.hum1)||0, d.bandaSecoMax, d.bandaExcesoMin);
     const led2 = bandClass(parseFloat(d.hum2)||0, d.bandaSecoMax, d.bandaExcesoMin);
     const pct = Math.min(100, parseInt(d.pct)||0);
+    bandaSecoMax   = parseFloat(d.bandaSecoMax)   || 10;
+    bandaExcesoMin = parseFloat(d.bandaExcesoMin) || 46;
 
     card.innerHTML = `
       <div class="card-title">Estado actual</div>
@@ -345,6 +370,7 @@ async function cargarGrafico(rango){
     if (chart) chart.destroy();
     chart = new Chart(canvas.getContext('2d'), {
       type:'line',
+      plugins:[pluginBandas],
       data:{
         labels:d.labels,
         datasets:[
@@ -356,7 +382,7 @@ async function cargarGrafico(rango){
         responsive:true, maintainAspectRatio:false,
         plugins:{legend:{display:false}},
         scales:{
-          y:{ticks:{font:{size:10},color:'#5B6258'}, grid:{color:'rgba(32,40,31,0.05)'}},
+          y:{min:0, max:60, ticks:{font:{size:10},color:'#5B6258'}, grid:{color:'rgba(32,40,31,0.05)'}},
           x:{ticks:{maxTicksLimit:6, font:{size:9}, color:'#5B6258'}, grid:{display:false}}
         }
       }
