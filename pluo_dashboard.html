@@ -243,17 +243,35 @@ const pluginBandas = {
   beforeDraw(chart) {
     const {ctx, chartArea:{top,bottom,left,right}, scales:{y}} = chart;
     const regiones = [
-      {min:0,          max:bandaSecoMax,   color:'rgba(192,67,45,0.10)'},
-      {min:bandaSecoMax, max:bandaExcesoMin, color:'rgba(47,125,69,0.10)'},
-      {min:bandaExcesoMin, max:60,          color:'rgba(46,111,149,0.10)'}
+      {min:0,             max:bandaSecoMax,   color:'rgba(192,67,45,0.10)'},
+      {min:bandaSecoMax,  max:bandaExcesoMin, color:'rgba(47,125,69,0.10)'},
+      {min:bandaExcesoMin,max:60,             color:'rgba(46,111,149,0.10)'}
     ];
     ctx.save();
+    // Bandas de color
     regiones.forEach(r => {
       const yTop    = y.getPixelForValue(r.max);
       const yBottom = y.getPixelForValue(r.min);
       ctx.fillStyle = r.color;
       ctx.fillRect(left, Math.max(top, yTop), right-left, Math.min(bottom, yBottom) - Math.max(top, yTop));
     });
+    // Líneas segmentadas en los límites
+    const limites = [
+      {val: bandaSecoMax,   color:'rgba(192,67,45,0.6)'},
+      {val: bandaExcesoMin, color:'rgba(46,111,149,0.6)'}
+    ];
+    limites.forEach(l => {
+      const yPx = y.getPixelForValue(l.val);
+      if (yPx < top || yPx > bottom) return;
+      ctx.beginPath();
+      ctx.setLineDash([6, 4]);
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = l.color;
+      ctx.moveTo(left, yPx);
+      ctx.lineTo(right, yPx);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
     ctx.restore();
   }
 };
