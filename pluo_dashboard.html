@@ -350,6 +350,10 @@ async function cargarEstado(){
           <div class="meta-label">Señal RTU1</div>
           <div class="meta-val">${d.rssi !== null ? d.rssi+' dBm' : '—'}<span class="signal-bars">${signalBars(d.rssi)}</span></div>
         </div>
+        <div class="meta-box">
+          <div class="meta-label">Intervalo lectura</div>
+          <div class="meta-val">${d.periodoLec ? (d.periodoLec >= 60 ? Math.round(d.periodoLec/60)+' min' : d.periodoLec+' seg') : '—'}</div>
+        </div>
       </div>
       <div class="cp-block">
         <div class="cp-top">
